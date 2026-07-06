@@ -1,0 +1,28 @@
+name: AI SDLC (parallel)
+
+# Opt-in pilot of the parallel-sandbox orchestrator (see docs/learning-log/ + the spec in
+# ManaksAI/sdlc-templates/SANDBOX-ORCHESTRATOR.md).
+#
+# Fires on `requirement-parallel` (start) or `approved-parallel` (resume after the human
+# gate) — its OWN labels, so it never collides with the single-agent `requirement` /
+# `approved` flow (ai-sdlc.yml). Default behaviour: analyze → plan → post a decomposition
+# + ownership map, then STOP for human review. No code is written.
+#
+# PILOT: this points at the sdlc-templates feature branch. After
+# ManaksAI/sdlc-templates#2 merges and @v1 is retagged, change both refs below to @v1.
+#
+# To resume after the gate: add the `approved-parallel` label (no manual re-toggle needed).
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  ai-sdlc-parallel:
+    if: github.event.label.name == 'requirement-parallel' || github.event.label.name == 'approved-parallel'
+    uses: ManaksAI/sdlc-templates/.github/workflows/ai-sdlc-parallel.yml@feature/parallel-orchestrator
+    secrets: inherit
+    with:
+      templates_ref: feature/parallel-orchestrator
+      max_sandboxes: 4
+      auto_implement: true   # fan out a build agent per slice (each opens its own PR)

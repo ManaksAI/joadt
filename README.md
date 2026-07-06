@@ -1,44 +1,60 @@
-# Project Template
+<img src="assets/logo.svg" width="88" alt="JoadT logo" align="left" />
 
-Starter template that wires every new project into the standard SDLC pipeline
-([ManaksAI/sdlc-templates](https://github.com/ManaksAI/sdlc-templates)).
+# JoadT
 
-## Start a new project from this template
+**A tentacle into every app.** JoadT is an agentic internal developer platform:
+plug in any app and it self-onboards — an analyzer maps its assets, dependencies and
+nuances — then it runs that app's own **agentic SDLC** (analyze → plan → build → test → ship),
+in isolation, gated by humans. *Everywhere your code is.*
 
-```bash
-gh repo create my-new-project --private --template ManaksAI/project-template --clone
-cd my-new-project
+<br clear="left" />
+
+> The name: **Joad** (after Tom Joad — *"I'll be everywhere"*) + **T** for **Tentacles**.
+> One central brain; many tentacles, each reaching into an app.
+
+---
+
+## The idea
+
+```
+            ┌──────────────── JoadT brain ────────────────┐
+            │  reusable SDLC rules · orchestrator agents   │
+            │  cross-app learning log                      │
+            └───┬───────────┬───────────┬───────────┬──────┘
+        tentacle│           │           │           │
+            ▼               ▼           ▼           ▼
+        [ Node app ]  [ Python API ] [ Mobile ]  [ Infra ]
+             │  plug in → ANALYZE (assets · deps · nuances)
+             │         → APP PROFILE (stack · targets · risk)
+             │         → INTEGRATED → its own isolated SDLC
 ```
 
-Or click **"Use this template"** on the GitHub repo page.
+Each tentacle gives an app an **independent, isolated** develop/test/deploy pipeline that
+still shares the brain's rules and accumulated learnings. See the design + enterprise guide
+in [ManaksAI/sdlc-templates](https://github.com/ManaksAI/sdlc-templates):
+`SANDBOX-ORCHESTRATOR.md` and `ENTERPRISE-PLAYBOOK.md`.
 
-That's it — on your first push the parallel SDLC pipeline runs automatically.
+## It eats its own dog food
 
-## What you get
+This repo **inherits the very SDLC it implements.** JoadT is built *using* JoadT's pipeline:
 
-| File                          | Purpose                                                  |
-|-------------------------------|----------------------------------------------------------|
-| `.github/workflows/ci.yml`    | 5-line caller — references the central pipeline           |
-| `Makefile`                    | Auto-detects language; maps `lint`/`test`/`build` to tools|
-| `.gitleaks.toml`              | Secret-scanning config                                    |
-| `.editorconfig`               | Consistent formatting across editors                     |
-| `.gitignore`                  | Sensible defaults (Python / Node / Pebble / Garmin)      |
+| Inherited from `sdlc-templates` | What it does |
+|---------------------------------|--------------|
+| `ci.yml` / `release.yml` | parallel CI + tagged releases |
+| `ai-sdlc.yml` / `review.yml` | single-agent requirement → PR, independent review |
+| `ai-sdlc-parallel.yml` | **the orchestrator** — requirement → plan → parallel file-fenced build agents |
+| `docs/learning-log/` | the project's compounding memory (prompts + runbook + helper scripts) |
 
-## Daily workflow
+File a requirement (issue + `requirement-parallel` label) and JoadT's own pipeline plans and
+builds it — the platform bootstrapping itself.
 
-```bash
-git checkout -b feature/my-thing
-# ... write code ...
-make ci            # run the WHOLE pipeline locally before pushing
-git push -u origin feature/my-thing   # CI runs the same steps in parallel
-```
+## Status
 
-The Makefile auto-detects the project type. Override if needed:
+Early. The **orchestrator is the working nucleus** (proven end-to-end); the platform layer
+around it — the self-configuring **Analyzer**, the **App Profile** schema, and the **registry /
+control plane** — is the build ahead. Rollout is scoped by stack archetype, not "any app at once."
 
-```bash
-make lint PROJECT_TYPE=python
-make info          # show what it detected
-```
+## Brand
 
-Supported out of the box: **python**, **node**, **pebble** (C), **garmin** (Monkey C).
-Add tools to the relevant target in the `Makefile` as the project grows.
+Logo: a minimal monochrome pixel-art octopus — `assets/logo.svg` (scalable). Slate/charcoal
+instrument aesthetic, matching the house style. The eight arms are the tentacles.

@@ -1,0 +1,22 @@
+{
+  "wave": "example-2026-06-30-tests-health-docs",
+  "note": "Idealized ownership map for the 3-slice run (tests / health / docs). The Planner emits a map like this per wave to .wave/ownership.json; it is the contract that fences each sandbox and the routing table for defect triage. Lockfiles are frozen and reconciled in a separate sequential step.",
+  "slices": [
+    {
+      "name": "tests",
+      "branch": "sandbox-tests",
+      "owns": ["test/**", "src/data/budget.js", "src/screens/OrderCard.jsx", "vite.config.js"]
+    },
+    {
+      "name": "health",
+      "branch": "sandbox-health",
+      "owns": ["server/index.js"]
+    },
+    {
+      "name": "docs",
+      "branch": "sandbox-docs",
+      "owns": ["README.md", "docs/**"]
+    }
+  ],
+  "frozen": ["package.json", "package-lock.json"]
+}
