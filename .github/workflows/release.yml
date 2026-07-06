@@ -1,0 +1,19 @@
+name: Release
+
+# Fires when you push a version tag, e.g.:
+#   git tag v1.0.0 && git push origin v1.0.0
+# Versions follow SemVer:  vMAJOR.MINOR.PATCH
+#   PATCH = bug fix   MINOR = new feature   MAJOR = breaking change
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+jobs:
+  release:
+    uses: ManaksAI/sdlc-templates/.github/workflows/release.yml@v1
+    # Attach built files to the release (adjust glob to your project), e.g.:
+    # with:
+    #   artifact_glob: "dist/*"     # python/node build output
+    #   artifact_glob: "*.pbw"      # Pebble watch face
+    #   artifact_glob: "*.iq"       # Garmin watch face

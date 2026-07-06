@@ -1,0 +1,13 @@
+name: Code Review
+
+# Independent AI code review on every pull request — opens + each new push.
+# Posts findings as review comments; a human still merges.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    uses: ManaksAI/sdlc-templates/.github/workflows/code-review.yml@v1
+    secrets: inherit

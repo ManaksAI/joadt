@@ -1,0 +1,8 @@
+# gitleaks config — extends the default ruleset (API keys, tokens, private keys).
+[extend]
+useDefault = true
+
+# Ignore false positives by fingerprint or path here as they come up:
+# [[allowlist]]
+# description = "example test fixtures"
+# paths = ['''tests/fixtures/.*''']

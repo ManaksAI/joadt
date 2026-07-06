@@ -1,0 +1,22 @@
+name: AI SDLC
+
+# Fires when a requirement is filed: add the `requirement` label to an issue.
+# Claude analyzes it, decides if a human is needed, and (if not) opens an
+# implementation PR with tests. It never merges and never deploys — humans do that.
+#
+# Setup (once per repo):
+#   • Add secret ANTHROPIC_API_KEY (Settings → Secrets and variables → Actions)
+#   • Set default workflow token to "Read and write"
+#     (Settings → Actions → General → Workflow permissions)
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  ai-sdlc:
+    if: github.event.label.name == 'requirement' || github.event.label.name == 'approved'
+    uses: ManaksAI/sdlc-templates/.github/workflows/ai-sdlc.yml@v1
+    secrets: inherit
+    # with:
+    #   auto_implement: false   # analysis-only mode: stop after the analysis comment
