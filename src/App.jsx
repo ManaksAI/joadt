@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Octopus from "./Octopus.jsx";
 import { gripStatus, summarize } from "./lib.js";
 import fallbackIndex from "../tentacles/index.json";
@@ -14,13 +14,14 @@ export default function App() {
   const [tentacles, setTentacles] = useState(fallback);
   const [live, setLive] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [attaching, setAttaching] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/tentacles")
-      .then((r) => r.json())
+  const loadRoster = () =>
+    fetch("/api/tentacles").then((r) => r.json())
       .then((rows) => { setTentacles(rows); setLive(true); })
       .catch(() => {});
-  }, []);
+
+  useEffect(() => { loadRoster(); }, []);
 
   const stats = summarize(tentacles);
   const current = tentacles.find((t) => t.tentacle === selected);
@@ -36,6 +37,7 @@ export default function App() {
         <Octopus size={116} />
         <h1>Joad<span className="t">T</span></h1>
         <p className="tag"><em>A tentacle into every app.</em> Plug one in — it self-onboards, then runs its own agentic SDLC.</p>
+        <button className="cta" onClick={() => setAttaching(true)}>Attach a repo</button>
         {!live && <p className="hint">roster from cache · start the control plane (<code>npm run dev:server</code>) for describe + actions</p>}
       </section>
 
@@ -54,10 +56,70 @@ export default function App() {
             <div className="describe-hint">describe →</div>
           </button>
         ))}
-        <div className="plug">+ Attach a repo</div>
+        <button className="plug" onClick={() => setAttaching(true)}>+ Attach a repo</button>
       </div>
 
       {current && <Describe t={current} onClose={() => setSelected(null)} />}
+      {attaching && <Attach onClose={() => setAttaching(false)} onDone={loadRoster} disabled={!live} />}
+    </div>
+  );
+}
+
+function Attach({ onClose, onDone, disabled }) {
+  const [path, setPath] = useState("");
+  const [log, setLog] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const pre = useRef(null);
+
+  useEffect(() => { if (pre.current) pre.current.scrollTop = pre.current.scrollHeight; }, [log]);
+
+  const run = async () => {
+    if (!path.trim()) return;
+    setBusy(true); setDone(false); setLog("");
+    try {
+      const res = await fetch("/api/attach", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: path.trim() }),
+      });
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let acc = "";
+      for (;;) {
+        const { done: d, value } = await reader.read();
+        if (d) break;
+        acc += dec.decode(value, { stream: true });
+        setLog(acc.replace(/\n?\[\[done \d+\]\]\n?/g, ""));
+      }
+    } catch (e) {
+      setLog((l) => l + `\nerror: ${e}`);
+    }
+    setBusy(false); setDone(true);
+    onDone();
+  };
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="panel-head">
+          <h2>Attach a repo</h2>
+          <button className="x" onClick={onClose} aria-label="close">×</button>
+        </div>
+        <p className="dim">A tentacle explores the repo, secures its latches, and registers it with the control plane.</p>
+        {disabled && <p className="dim">start the control plane (<code>npm run dev:server</code>) to attach.</p>}
+        <div className="attach-row">
+          <input className="path" placeholder="/absolute/path/to/repo" value={path}
+            onChange={(e) => setPath(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && !busy && run()} disabled={disabled || busy} />
+          <button className="act" onClick={run} disabled={disabled || busy || !path.trim()}>
+            {busy ? "attaching…" : "attach"}
+          </button>
+        </div>
+        {log && (
+          <pre className="progress" ref={pre}>{log}</pre>
+        )}
+        {done && <p className="dim">done — the roster has been refreshed.</p>}
+      </div>
     </div>
   );
 }

@@ -69,6 +69,18 @@ body { margin: 0; background: var(--page); color: var(--ink); font-family: var(-
   cursor: pointer; padding: 0 .2rem; }
 .x:hover { color: var(--ink); }
 
+/* attach modal */
+.overlay { position: fixed; inset: 0; background: rgba(20,20,18,.35); display: flex;
+  align-items: flex-start; justify-content: center; padding: 6vh 1rem; z-index: 10; }
+.modal { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  padding: 1.1rem 1.2rem; width: 100%; max-width: 620px; box-shadow: 0 8px 40px rgba(0,0,0,.12); }
+.attach-row { display: flex; gap: .5rem; margin-top: .6rem; }
+.path { flex: 1; font-family: var(--mono); font-size: 13px; padding: .5rem .7rem;
+  border: 1px solid var(--muted); border-radius: 8px; background: var(--page); color: var(--ink); }
+.progress { margin-top: .8rem; font-family: var(--mono); font-size: 12px; line-height: 1.5;
+  background: var(--page); border: 1px solid var(--line); border-radius: 8px; padding: .7rem;
+  max-height: 320px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+
 .arch { font-family: var(--mono); font-size: 12px; line-height: 1.45; margin: .3rem 0;
   padding: .7rem .8rem; background: var(--page); border: 1px solid var(--line);
   border-radius: 8px; color: var(--ink); overflow-x: auto; white-space: pre; }

@@ -30,3 +30,6 @@ __pycache__/
 
 # Control-plane local path map (machine-specific)
 tentacles/.local.json
+
+# Vite cache
+.vite/

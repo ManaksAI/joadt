@@ -53,4 +53,22 @@ app.post("/api/tentacles/:name/run", (req, res) => {
   );
 });
 
+// attach a repo — runs the onboarding pipeline and STREAMS its progress to the UI
+app.post("/api/attach", (req, res) => {
+  const repoPath = String((req.body || {}).path || "").trim();
+  if (!repoPath) return res.status(400).json({ error: "path required" });
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("X-Accel-Buffering", "no");
+  const child = spawn(
+    "python3",
+    [join(ROOT, "scripts", "attach.py"), repoPath, "--prep", "--register", REG],
+    { cwd: ROOT }
+  );
+  child.stdout.on("data", (d) => res.write(d));
+  child.stderr.on("data", (d) => res.write(d));
+  child.on("error", (e) => { res.write(`\nerror: ${e}\n`); res.end(); });
+  child.on("close", (code) => { res.write(`\n[[done ${code}]]\n`); res.end(); });
+});
+
 app.listen(PORT, () => console.log(`JoadT control plane on http://localhost:${PORT}`));
