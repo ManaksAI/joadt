@@ -1,0 +1,48 @@
+{
+  "tentacle": "tablee",
+  "attached_at": "2026-07-07T11:03:27+00:00",
+  "remote": "https://github.com/ManaksAI/tablee.git",
+  "grip": "partial",
+  "operable": true,
+  "stack": {
+    "language": "node",
+    "frameworks": [
+      "react",
+      "express",
+      "vite",
+      "vitest"
+    ],
+    "package_manager": "npm"
+  },
+  "commands": {
+    "build": "make build",
+    "test": "make test-unit",
+    "lint": "make lint"
+  },
+  "risk": "unknown",
+  "entrypoints": [
+    "index.html",
+    "server/index.js",
+    "src/main.jsx"
+  ],
+  "architecture": "  browser\n     |\n     v\n  [ frontend . react ]\n     |  /api\n     v\n  [ backend . express ]\n     |--> Claude (Anthropic)",
+  "dependencies": [
+    "@anthropic-ai/sdk",
+    "@vitejs/plugin-react",
+    "autoprefixer",
+    "cors",
+    "dotenv",
+    "express",
+    "postcss",
+    "react",
+    "react-dom",
+    "tailwindcss",
+    "vite",
+    "vitest"
+  ],
+  "functionalities": null,
+  "conventions": [],
+  "open_latches": [
+    "lint-config"
+  ]
+}
