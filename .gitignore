@@ -33,3 +33,6 @@ tentacles/.local.json
 
 # Vite cache
 .vite/
+
+# JoadT-managed repo clones
+.workspaces/

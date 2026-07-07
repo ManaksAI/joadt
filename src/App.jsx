@@ -59,7 +59,8 @@ export default function App() {
         <button className="plug" onClick={() => setAttaching(true)}>+ Attach a repo</button>
       </div>
 
-      {current && <Describe t={current} onClose={() => setSelected(null)} />}
+      {current && <Describe t={current} onClose={() => setSelected(null)}
+        onDetached={() => { setSelected(null); loadRoster(); }} />}
       {attaching && <Attach onClose={() => setAttaching(false)} onDone={loadRoster} disabled={!live} />}
     </div>
   );
@@ -107,8 +108,9 @@ function Attach({ onClose, onDone, disabled }) {
         </div>
         <p className="dim">A tentacle explores the repo, secures its latches, and registers it with the control plane.</p>
         {disabled && <p className="dim">start the control plane (<code>npm run dev:server</code>) to attach.</p>}
+        <p className="dim">Give a local path, or a git URL — a URL is cloned into a workspace first.</p>
         <div className="attach-row">
-          <input className="path" placeholder="/absolute/path/to/repo" value={path}
+          <input className="path" placeholder="/abs/path/to/repo  or  https://github.com/org/repo" value={path}
             onChange={(e) => setPath(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !busy && run()} disabled={disabled || busy} />
           <button className="act" onClick={run} disabled={disabled || busy || !path.trim()}>
@@ -124,9 +126,15 @@ function Attach({ onClose, onDone, disabled }) {
   );
 }
 
-function Describe({ t, onClose }) {
+function Describe({ t, onClose, onDetached }) {
   const [running, setRunning] = useState(null);
   const [result, setResult] = useState(null);
+
+  const detach = async () => {
+    if (!window.confirm(`Detach ${t.tentacle} completely? This removes it from the control plane.`)) return;
+    try { await fetch(`/api/tentacles/${t.tentacle}`, { method: "DELETE" }); } catch (e) { /* ignore */ }
+    onDetached();
+  };
 
   const run = async (action) => {
     setRunning(action); setResult(null);
@@ -193,6 +201,10 @@ function Describe({ t, onClose }) {
           <pre>{result.error || result.output}</pre>
         </div>
       )}
+
+      <div className="detach-row">
+        <button className="detach" onClick={detach}>detach repo</button>
+      </div>
     </div>
   );
 }

@@ -99,3 +99,8 @@ body { margin: 0; background: var(--page); color: var(--ink); font-family: var(-
 .output.fail .output-head { color: #993c1d; }
 .output pre { margin: 0; padding: .7rem; font-size: 12px; line-height: 1.5; max-height: 260px;
   overflow: auto; white-space: pre-wrap; word-break: break-word; }
+
+.detach-row { margin-top: 1.2rem; padding-top: .9rem; border-top: 1px solid var(--line); }
+.detach { font-family: var(--mono); font-size: 13px; padding: .35rem .8rem; border-radius: 8px;
+  border: 1px solid #d09b8b; background: transparent; color: #993c1d; cursor: pointer; }
+.detach:hover { background: #993c1d; color: var(--page); border-color: #993c1d; }
