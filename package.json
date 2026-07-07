@@ -1,0 +1,22 @@
+{
+  "name": "joadt",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "JoadT — agentic internal developer platform. A tentacle into every app.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.4"
+  }
+}
