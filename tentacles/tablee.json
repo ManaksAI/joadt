@@ -1,6 +1,6 @@
 {
   "tentacle": "tablee",
-  "attached_at": "2026-07-07T02:03:38+00:00",
+  "attached_at": "2026-07-07T02:24:47+00:00",
   "remote": "https://github.com/ManaksAI/tablee.git",
   "grip": "partial",
   "operable": true,
@@ -25,6 +25,22 @@
     "server/index.js",
     "src/main.jsx"
   ],
+  "dependencies": [
+    "@anthropic-ai/sdk",
+    "@vitejs/plugin-react",
+    "autoprefixer",
+    "cors",
+    "dotenv",
+    "express",
+    "postcss",
+    "react",
+    "react-dom",
+    "tailwindcss",
+    "vite",
+    "vitest"
+  ],
+  "functionalities": null,
+  "conventions": [],
   "open_latches": [
     "lint-config"
   ]
