@@ -98,7 +98,10 @@ function Describe({ t, onClose }) {
       </span>
 
       <h4>Architecture</h4>
-      <List items={t.entrypoints} empty="no entrypoints detected" />
+      {t.architecture
+        ? <pre className="arch">{t.architecture}</pre>
+        : <List items={t.entrypoints} empty="no entrypoints detected" />}
+      {t.entrypoints?.length ? <p className="dim mono ent">entrypoints · {t.entrypoints.join(" · ")}</p> : null}
 
       <h4>Tech stack</h4>
       <p>{[t.stack?.language, t.stack?.package_manager].filter(Boolean).join(" · ") || "unknown"}

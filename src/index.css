@@ -69,6 +69,11 @@ body { margin: 0; background: var(--page); color: var(--ink); font-family: var(-
   cursor: pointer; padding: 0 .2rem; }
 .x:hover { color: var(--ink); }
 
+.arch { font-family: var(--mono); font-size: 12px; line-height: 1.45; margin: .3rem 0;
+  padding: .7rem .8rem; background: var(--page); border: 1px solid var(--line);
+  border-radius: 8px; color: var(--ink); overflow-x: auto; white-space: pre; }
+.ent { font-size: 11px; margin-top: .35rem; }
+
 .actions { display: flex; gap: .5rem; margin-top: .3rem; }
 .act { font-family: var(--mono); font-size: 13px; padding: .35rem .8rem; border-radius: 8px;
   border: 1px solid var(--muted); background: transparent; color: var(--ink); cursor: pointer; }

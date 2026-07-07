@@ -84,6 +84,38 @@ commands = {
 }
 risk = (profile.get("deep") or {}).get("risk_level", "unknown")
 
+def sketch_architecture(profile):
+    """A coarse ASCII architecture from deterministic signals (frontend/backend/services).
+    The deep pass refines it; this is the facts-only sketch."""
+    st = profile.get("stack") or {}
+    fw = set(st.get("frameworks") or [])
+    deps = {d.lower() for d in (profile.get("dependencies") or {}).get("external", [])}
+    entry = profile.get("entrypoints") or []
+    fe = next((f for f in ("next", "react", "vue", "svelte") if f in fw), None) or (
+        "web" if any(e == "index.html" or e.startswith("src/") for e in entry) else None)
+    be = next((f for f in ("express", "fastify", "koa") if f in fw or f in deps), None) or (
+        "server" if any(e.startswith("server/") for e in entry) else None)
+    svc = [name for keys, name in (
+        ({"@anthropic-ai/sdk", "anthropic"}, "Claude (Anthropic)"),
+        ({"openai"}, "OpenAI"),
+        ({"pg", "postgres", "mysql", "mysql2", "mongoose", "mongodb", "prisma",
+          "sqlite3", "better-sqlite3", "sequelize"}, "Database"),
+        ({"redis", "ioredis"}, "Redis"), ({"stripe"}, "Stripe"),
+    ) if deps & keys]
+    lines = []
+    if fe:
+        lines += ["  browser", "     |", "     v", f"  [ frontend . {fe} ]"]
+    if be:
+        if fe:
+            lines += ["     |  /api", "     v"]
+        lines += [f"  [ backend . {be} ]"]
+    for s in svc:
+        lines += [f"     |--> {s}"]
+    if not lines:
+        lines = [f"  [ {st.get('language') or 'app'} ]"] + [f"     - {e}" for e in entry[:5]]
+    return "\n".join(lines)
+
+
 deep = profile.get("deep") or {}
 tentacle = {
     "tentacle": profile["repo"],
@@ -95,6 +127,7 @@ tentacle = {
     "commands": commands,
     "risk": risk,
     "entrypoints": profile.get("entrypoints", []),
+    "architecture": sketch_architecture(profile),
     "dependencies": (profile.get("dependencies") or {}).get("external", [])[:40],
     "functionalities": deep.get("summary"),     # from the deep pass; null until it runs
     "conventions": deep.get("conventions", []),
