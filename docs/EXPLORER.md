@@ -64,16 +64,33 @@ ownership map, defect triage, etc.). Shape:
 The profile is **per-run and git-ignored** (`.joadt/`) — regenerate it by re-exploring. (A repo
 may later choose to commit its profile as a canonical record.)
 
-## Next layer — the LLM nuance pass
+## Securing the grip — the prep agent
 
-The deterministic core finds the *facts*. A follow-on pass (Claude, structured output, à la
-`triage.py`/`plan.py`) adds *judgment* the scan can't: non-obvious/implicit dependencies, the
-framework's conventions, hidden coupling, a risk read, and a **prioritized prep plan** for the
-missing latches. It reads `.joadt/profile.json` + the file tree and enriches the profile. Kept
-separate so the free, fast, testable core always runs first.
+[`scripts/prep.py`](../scripts/prep.py) reads the profile and **fixes the missing latches** with
+safe, *additive* changes so a tentacle can grip the repo. It only ever adds files (starter lint
+config, a smoke test, `.env.example`, a learning-log scaffold, the CI caller) or regenerates a
+lockfile. It **never** rewrites history, removes committed secrets, or invents a stack — anything
+needing judgment is reported, not touched.
+
+```
+python scripts/prep.py [repo_path]            # dry-run: prints the plan
+python scripts/prep.py [repo_path] --apply     # writes the additive fixes
+```
+
+Split of responsibility:
+- **auto-fixable** → lint-config, tests, env-contract, learning-log, ci-wiring, lockfile
+- **needs a human** → stack, dependency-manifest, entrypoint, committed-secrets
+
+## Seeing more — the deep pass
+
+[`scripts/explore_deep.py`](../scripts/explore_deep.py) layers *judgment* on the deterministic
+facts (Claude, structured output, à la `triage.py`/`plan.py`): implicit/undeclared dependencies,
+the framework's conventions, hidden coupling, a risk read, and a **prioritized prep plan**. It
+enriches `profile["deep"]`. Kept separate + API-gated so the free, fast core always runs first.
 
 ## Where it sits in the tentacle lifecycle
 
 ```
-attach repo → EXPLORE (this) → prep missing latches → App Profile → the app's own agentic SDLC
+attach repo → EXPLORE (facts) → [DEEP pass: judgment] → PREP (secure latches) → App Profile
+            → the app's own agentic SDLC
 ```
