@@ -27,3 +27,6 @@ __pycache__/
 
 # OS
 .DS_Store
+
+# Control-plane local path map (machine-specific)
+tentacles/.local.json
