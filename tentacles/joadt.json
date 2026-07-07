@@ -1,7 +1,7 @@
 {
-  "tentacle": "tablee",
-  "attached_at": "2026-07-07T11:43:48+00:00",
-  "remote": "https://github.com/ManaksAI/tablee.git",
+  "tentacle": "joadt",
+  "attached_at": "2026-07-07T11:46:24+00:00",
+  "remote": "https://github.com/ManaksAI/joadt.git",
   "grip": "partial",
   "operable": true,
   "stack": {
@@ -25,24 +25,20 @@
     "server/index.js",
     "src/main.jsx"
   ],
-  "architecture": "  browser\n     |\n     v\n  [ frontend . react ]\n     |  /api\n     v\n  [ backend . express ]\n     |--> Claude (Anthropic)",
+  "architecture": "  browser\n     |\n     v\n  [ frontend . react ]\n     |  /api\n     v\n  [ backend . express ]",
   "dependencies": [
-    "@anthropic-ai/sdk",
     "@vitejs/plugin-react",
-    "autoprefixer",
     "cors",
-    "dotenv",
     "express",
-    "postcss",
     "react",
     "react-dom",
-    "tailwindcss",
     "vite",
     "vitest"
   ],
   "functionalities": null,
   "conventions": [],
   "open_latches": [
-    "lint-config"
+    "lint-config",
+    "env-contract"
   ]
 }

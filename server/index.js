@@ -2,7 +2,7 @@
 // pipeline steps (build / test / lint) in its local repo, on demand from the UI.
 import express from "express";
 import cors from "cors";
-import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync, rmSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -20,6 +20,17 @@ const records = () =>
   readdirSync(REG)
     .filter((f) => f.endsWith(".json") && f !== "index.json" && !f.startsWith("."))
     .map((f) => JSON.parse(readFileSync(join(REG, f), "utf8")));
+
+const WORKSPACES = join(ROOT, ".workspaces"); // JoadT-managed clones (git-ignored)
+
+const rebuildIndex = () => {
+  const index = records().map((t) => ({
+    tentacle: t.tentacle, grip: t.grip, operable: t.operable,
+    language: (t.stack || {}).language, open_latches: (t.open_latches || []).length,
+    attached_at: t.attached_at,
+  }));
+  writeFileSync(join(REG, "index.json"), JSON.stringify(index, null, 2));
+};
 
 const app = express();
 app.use(cors());
@@ -51,6 +62,70 @@ app.post("/api/tentacles/:name/run", (req, res) => {
   child.on("close", (code) =>
     res.json({ action, cmd, cwd, code, ok: code === 0, output: out.slice(-12000) })
   );
+});
+
+// attach a repo — a local path OR a git URL (cloned first) — and STREAM progress to the UI
+app.post("/api/attach", (req, res) => {
+  const input = String((req.body || {}).path || "").trim();
+  if (!input) return res.status(400).json({ error: "path or git url required" });
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("X-Accel-Buffering", "no");
+
+  const onboard = (localPath) => {
+    const child = spawn("python3",
+      [join(ROOT, "scripts", "attach.py"), localPath, "--prep", "--register", REG], { cwd: ROOT });
+    child.stdout.on("data", (d) => res.write(d));
+    child.stderr.on("data", (d) => res.write(d));
+    child.on("error", (e) => { res.write(`\nerror: ${e}\n`); res.end(); });
+    child.on("close", (code) => { res.write(`\n[[done ${code}]]\n`); res.end(); });
+  };
+
+  const isUrl = /^(https?:\/\/|git@)/.test(input) || input.endsWith(".git");
+  if (!isUrl) {
+    if (!existsSync(input)) { res.write(`  path not found: ${input}\n[[done 1]]\n`); return res.end(); }
+    return onboard(input);
+  }
+
+  // git URL → clone into a JoadT-managed workspace, then onboard the clone
+  const name = input.replace(/\.git$/, "").split("/").pop() || "repo";
+  const dest = join(WORKSPACES, name);
+  if (existsSync(dest)) {
+    res.write(`  workspace exists → reusing .workspaces/${name}\n\n`);
+    return onboard(dest);
+  }
+  res.write(`  cloning ${input}\n  → .workspaces/${name}\n\n`);
+  const clone = spawn("git", ["clone", "--depth", "1", input, dest]);
+  clone.stdout.on("data", (d) => res.write(d));
+  clone.stderr.on("data", (d) => res.write(d)); // git clone reports progress on stderr
+  clone.on("error", (e) => { res.write(`\nclone error: ${e}\n[[done 1]]\n`); res.end(); });
+  clone.on("close", (code) => {
+    if (code !== 0) { res.write(`\nclone failed (exit ${code})\n[[done ${code}]]\n`); return res.end(); }
+    res.write(`\n  cloned. onboarding…\n`);
+    onboard(dest);
+  });
+});
+
+// detach a repo — remove it from the control plane completely
+app.delete("/api/tentacles/:name", (req, res) => {
+  const name = req.params.name;
+  const rec = join(REG, `${name}.json`);
+  if (!existsSync(rec)) return res.status(404).json({ error: "unknown tentacle" });
+  unlinkSync(rec);
+  // drop it from the local-path map; remove the clone dir only if JoadT created it
+  const lp = join(REG, ".local.json");
+  let removedClone = false;
+  if (existsSync(lp)) {
+    const m = JSON.parse(readFileSync(lp, "utf8"));
+    const p = m[name];
+    delete m[name];
+    writeFileSync(lp, JSON.stringify(m, null, 2));
+    if (p && p.startsWith(WORKSPACES)) {
+      try { rmSync(p, { recursive: true, force: true }); removedClone = true; } catch {}
+    }
+  }
+  rebuildIndex();
+  res.json({ ok: true, detached: name, removedClone });
 });
 
 app.listen(PORT, () => console.log(`JoadT control plane on http://localhost:${PORT}`));

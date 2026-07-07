@@ -39,7 +39,8 @@ def run(script, *a):
 
 def git(*a, default=""):
     try:
-        return subprocess.check_output(["git", "-C", repo, *a], text=True).strip()
+        return subprocess.check_output(
+            ["git", "-C", repo, *a], text=True, stderr=subprocess.DEVNULL).strip()
     except Exception:
         return default
 
