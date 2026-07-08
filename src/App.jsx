@@ -178,6 +178,18 @@ function Describe({ t, onClose, onDetached }) {
         {t.stack?.frameworks?.length ? " · " + t.stack.frameworks.join(", ") : ""}</p>
       {t.dependencies?.length ? <p className="dim mono deps">{t.dependencies.join(" · ")}</p> : null}
 
+      <h4>Toolchain</h4>
+      {t.toolchain?.required?.length ? (
+        <p>
+          {t.toolchain.required.map((tool) => (
+            <span key={tool} className={"tc " + (t.toolchain.missing?.includes(tool) ? "tc-missing" : "tc-ok")}>{tool}</span>
+          ))}
+          {t.toolchain.missing?.length
+            ? <span className="dim"> — missing; JoadT must provision it to build/test</span>
+            : <span className="dim"> — available</span>}
+        </p>
+      ) : <p className="dim">no toolchain resolved</p>}
+
       <h4>Functionalities</h4>
       {t.functionalities
         ? <p>{t.functionalities}</p>

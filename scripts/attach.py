@@ -125,6 +125,7 @@ tentacle = {
     "grip": grip,
     "operable": operable,
     "stack": {k: stack.get(k) for k in ("language", "frameworks", "package_manager")},
+    "toolchain": profile.get("toolchain") or {},
     "commands": commands,
     "risk": risk,
     "entrypoints": profile.get("entrypoints", []),

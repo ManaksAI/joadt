@@ -1,11 +1,19 @@
 [
   {
+    "tentacle": "MalayalamWatch-Analog",
+    "grip": "partial",
+    "operable": false,
+    "language": "garmin",
+    "open_latches": 8,
+    "attached_at": "2026-07-07T12:13:37+00:00"
+  },
+  {
     "tentacle": "joadt",
     "grip": "partial",
     "operable": true,
     "language": "node",
     "open_latches": 2,
-    "attached_at": "2026-07-07T11:46:24+00:00"
+    "attached_at": "2026-07-07T12:14:34+00:00"
   },
   {
     "tentacle": "tablee",
@@ -13,6 +21,6 @@
     "operable": true,
     "language": "node",
     "open_latches": 1,
-    "attached_at": "2026-07-07T11:43:48+00:00"
+    "attached_at": "2026-07-07T12:13:37+00:00"
   }
 ]

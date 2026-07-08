@@ -1,6 +1,6 @@
 {
   "tentacle": "joadt",
-  "attached_at": "2026-07-07T11:46:24+00:00",
+  "attached_at": "2026-07-07T12:14:34+00:00",
   "remote": "https://github.com/ManaksAI/joadt.git",
   "grip": "partial",
   "operable": true,
@@ -13,6 +13,17 @@
       "vitest"
     ],
     "package_manager": "npm"
+  },
+  "toolchain": {
+    "required": [
+      "node",
+      "npm"
+    ],
+    "present": [
+      "node",
+      "npm"
+    ],
+    "missing": []
   },
   "commands": {
     "build": "make build",

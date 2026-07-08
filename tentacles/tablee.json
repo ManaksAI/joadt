@@ -1,6 +1,6 @@
 {
   "tentacle": "tablee",
-  "attached_at": "2026-07-07T11:43:48+00:00",
+  "attached_at": "2026-07-07T12:13:37+00:00",
   "remote": "https://github.com/ManaksAI/tablee.git",
   "grip": "partial",
   "operable": true,
@@ -13,6 +13,17 @@
       "vitest"
     ],
     "package_manager": "npm"
+  },
+  "toolchain": {
+    "required": [
+      "node",
+      "npm"
+    ],
+    "present": [
+      "node",
+      "npm"
+    ],
+    "missing": []
   },
   "commands": {
     "build": "make build",

@@ -1,0 +1,44 @@
+{
+  "tentacle": "MalayalamWatch-Analog",
+  "attached_at": "2026-07-07T12:13:37+00:00",
+  "remote": "https://github.com/ManaksAI/MalayalamWatch-Analog",
+  "grip": "partial",
+  "operable": false,
+  "stack": {
+    "language": "garmin",
+    "frameworks": [
+      "connectiq"
+    ],
+    "package_manager": "connectiq"
+  },
+  "toolchain": {
+    "required": [
+      "monkeyc"
+    ],
+    "present": [],
+    "missing": [
+      "monkeyc"
+    ]
+  },
+  "commands": {
+    "build": "make build",
+    "test": "make test-unit",
+    "lint": "make lint"
+  },
+  "risk": "unknown",
+  "entrypoints": [],
+  "architecture": "  [ garmin ]",
+  "dependencies": [],
+  "functionalities": null,
+  "conventions": [],
+  "open_latches": [
+    "dependency-manifest",
+    "toolchain",
+    "lockfile",
+    "tests",
+    "lint-config",
+    "learning-log",
+    "entrypoint",
+    "env-contract"
+  ]
+}

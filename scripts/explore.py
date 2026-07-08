@@ -15,6 +15,7 @@ Exit:   0 = full grip · 1 = missing latches (attachable, needs prep) · 2 = no 
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -53,7 +54,14 @@ stack = {"language": None, "frameworks": [], "package_manager": None,
          "build": None, "test": None}
 external = []
 
-if has("package.json"):
+# Watch-face stacks first — Pebble can also carry a package.json, so check it before node.
+if has("appinfo.json") or (has("package.json") and "pebble" in read_json("package.json")):
+    stack.update(language="pebble", package_manager="pebble", build="pebble build",
+                 test=None, frameworks=["pebble"])
+elif has("manifest.xml") and (has("monkey.jungle") or globq(r"\.mc$")):
+    stack.update(language="garmin", package_manager="connectiq", build="monkeyc",
+                 test=None, frameworks=["connectiq"])
+elif has("package.json"):
     pkg = read_json("package.json")
     deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
     external = sorted(deps)
@@ -94,6 +102,16 @@ ENTRY_PATTERNS = [r"^server/index\.(js|ts)$", r"^src/main\.(js|jsx|ts|tsx)$",
                   r"^cmd/.*/main\.go$", r"^src/main\.rs$"]
 entrypoints = [f for f in files if any(re.match(p, f) for p in ENTRY_PATTERNS)]
 
+# toolchain — the tools a stack needs to build/test. JoadT must KNOW these (and, next,
+# provision them on demand) so it stays self-contained instead of assuming the host has them.
+TOOLCHAINS = {
+    "node": ["node", "npm"], "python": ["python3"], "go": ["go"], "rust": ["cargo"],
+    "pebble": ["pebble"], "garmin": ["monkeyc"],
+}
+tc_required = TOOLCHAINS.get(stack["language"], [])
+tc_missing = [t for t in tc_required if not shutil.which(t)]
+tc_present = [t for t in tc_required if shutil.which(t)]
+
 
 # ─────────────────────────── the latch catalog ───────────────────────────
 # Each latch: what JoadT needs to grip the repo. status = present|missing|broken.
@@ -126,6 +144,13 @@ latch("dependency-manifest",
       "high", f"{len(external)} external dependencies declared" if external
       else "no dependency manifest found",
       fix="declare dependencies in a manifest")
+latch("toolchain", bool(tc_required) and not tc_missing, "high",
+      (", ".join(tc_present) + " available") if tc_required and not tc_missing
+      else ("missing: " + ", ".join(tc_missing)) if tc_missing
+      else "no toolchain resolved (unknown stack)",
+      fix=(f"provision the {stack['language']} toolchain: {', '.join(tc_missing)}"
+           if tc_missing else None),
+      status="present" if (tc_required and not tc_missing) else "missing")
 latch("lockfile", any(has(l) for l in lockfiles), "medium",
       "lockfile present (verify sync at install time)" if any(has(l) for l in lockfiles)
       else "no lockfile — installs are not reproducible",
@@ -172,6 +197,7 @@ profile = {
     "explored_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     "grip": grip,
     "stack": stack,
+    "toolchain": {"required": tc_required, "present": tc_present, "missing": tc_missing},
     "entrypoints": entrypoints,
     "dependencies": {"external": external, "count": len(external)},
     "latches": latches,
