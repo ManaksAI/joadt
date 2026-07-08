@@ -13,13 +13,30 @@ const fallback = fallbackIndex.map((t) => ({
 export default function App() {
   const [tentacles, setTentacles] = useState(fallback);
   const [live, setLive] = useState(false);
+  const [mode, setMode] = useState("local"); // "app" once the GitHub App is configured
   const [selected, setSelected] = useState(null);
   const [attaching, setAttaching] = useState(false);
 
-  const loadRoster = () =>
-    fetch("/api/tentacles").then((r) => r.json())
-      .then((rows) => { setTentacles(rows); setLive(true); })
-      .catch(() => {});
+  const loadRoster = async () => {
+    // Prefer the GitHub App: repos the app is installed on ARE the tentacles. Merge in any
+    // explored records (grip/stack/describe). Fall back to the local registry.
+    try {
+      const inst = await fetch("/api/installations").then((r) => r.json());
+      if (inst.configured) {
+        const explored = await fetch("/api/tentacles").then((r) => r.json()).catch(() => []);
+        const byName = Object.fromEntries(explored.map((t) => [t.tentacle, t]));
+        setTentacles(inst.repos.map((r) => ({
+          ...(byName[r.tentacle] || {}), ...r, explored: Boolean(byName[r.tentacle]),
+        })));
+        setMode("app"); setLive(true); return;
+      }
+    } catch { /* fall through to local */ }
+    try {
+      const rows = await fetch("/api/tentacles").then((r) => r.json());
+      setTentacles(rows.map((t) => ({ ...t, explored: true })));
+      setMode("local"); setLive(true);
+    } catch { /* keep the cached fallback */ }
+  };
 
   useEffect(() => { loadRoster(); }, []);
 
@@ -38,6 +55,13 @@ export default function App() {
         <h1>Joad<span className="t">T</span></h1>
         <p className="tag"><em>A tentacle into every app.</em> Plug one in — it self-onboards, then runs its own agentic SDLC.</p>
         <button className="cta" onClick={() => setAttaching(true)}>Attach a repo</button>
+        {live && (
+          <p className="mode">
+            {mode === "app"
+              ? "● connected to the GitHub App — installed repos are your tentacles"
+              : "○ local mode — register the GitHub App to source tentacles from GitHub"}
+          </p>
+        )}
         {!live && <p className="hint">roster from cache · start the control plane (<code>npm run dev:server</code>) for describe + actions</p>}
       </section>
 
@@ -49,10 +73,12 @@ export default function App() {
         {tentacles.map((t) => (
           <button className="card" key={t.tentacle} onClick={() => setSelected(t.tentacle)}>
             <h3>{t.tentacle}</h3>
-            <div className="meta">{t.stack?.language || "unknown"}</div>
-            <span className={"pill " + (t.operable ? "ok" : t.grip === "none" ? "bad" : "warn")}>
-              {t.grip} grip · {gripStatus(t)}
-            </span>
+            <div className="meta">{t.stack?.language || (t.explored === false ? "installed" : "unknown")}</div>
+            {t.explored === false
+              ? <span className="pill">installed · not explored</span>
+              : <span className={"pill " + (t.operable ? "ok" : t.grip === "none" ? "bad" : "warn")}>
+                  {t.grip} grip · {gripStatus(t)}
+                </span>}
             <div className="describe-hint">describe →</div>
           </button>
         ))}
@@ -150,8 +176,43 @@ function Describe({ t, onClose, onDetached }) {
     setRunning(null);
   };
 
+  const explore = async () => {
+    setRunning("explore"); setResult(null);
+    try {
+      const res = await fetch("/api/attach", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: t.remote }),
+      });
+      const text = await res.text();
+      setResult({ output: text.replace(/\n?\[\[done \d+\]\]\n?/g, ""), ok: true });
+    } catch (e) { setResult({ error: String(e), ok: false }); }
+    setRunning(null);
+    onDetached(); // refresh the roster — it now carries grip/stack; the card updates
+  };
+
   const List = ({ items, empty }) =>
     items && items.length ? <ul>{items.map((x) => <li key={x}>{x}</li>)}</ul> : <p className="dim">{empty}</p>;
+
+  // Installed via the App but not yet explored → offer to explore, not the full detail.
+  if (t.explored === false) {
+    return (
+      <div className="panel">
+        <div className="panel-head">
+          <div><h2>{t.tentacle}</h2><div className="dim mono">{t.remote || "—"}</div></div>
+          <button className="x" onClick={onClose} aria-label="close">×</button>
+        </div>
+        <span className="pill">installed · not explored</span>
+        <h4>Explore</h4>
+        <p className="dim">Installed via the GitHub App but not yet mapped. Explore it to detect its stack, latches, grip, architecture, and toolchain.</p>
+        <div className="actions">
+          <button className="act" disabled={running === "explore"} onClick={explore}>
+            {running === "explore" ? "exploring…" : "explore this repo"}
+          </button>
+        </div>
+        {result && <pre className="progress">{result.output || result.error || ""}</pre>}
+      </div>
+    );
+  }
 
   return (
     <div className="panel">
