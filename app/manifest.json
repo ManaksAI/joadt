@@ -1,0 +1,20 @@
+{
+  "name": "JoadT",
+  "description": "A tentacle into every app. Install JoadT on a repo to plug it into the control plane — no master repo, no caller workflows.",
+  "url": "https://github.com/ManaksAI/joadt",
+  "public": false,
+  "default_permissions": {
+    "contents": "write",
+    "pull_requests": "write",
+    "issues": "write",
+    "checks": "read",
+    "actions": "write",
+    "metadata": "read"
+  },
+  "default_events": [
+    "issues",
+    "pull_request",
+    "installation",
+    "installation_repositories"
+  ]
+}

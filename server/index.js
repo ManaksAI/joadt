@@ -4,8 +4,10 @@ import express from "express";
 import cors from "cors";
 import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync, rmSync } from "node:fs";
 import { spawn } from "node:child_process";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { appConfigured, installedRepos } from "./github.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const REG = join(ROOT, "tentacles");
@@ -32,9 +34,41 @@ const rebuildIndex = () => {
   writeFileSync(join(REG, "index.json"), JSON.stringify(index, null, 2));
 };
 
+const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET;
+
 const app = express();
 app.use(cors());
-app.use(express.json());
+// keep the raw body so we can verify GitHub webhook signatures
+app.use(express.json({ verify: (req, _res, buf) => { req.rawBody = buf; } }));
+
+// installed repos = the tentacle roster, straight from the GitHub App (no master, no callers).
+// Falls back to { configured: false } until the app is registered, so the UI keeps working.
+app.get("/api/installations", async (_req, res) => {
+  if (!appConfigured()) return res.json({ configured: false, repos: [] });
+  try {
+    res.json({ configured: true, repos: await installedRepos() });
+  } catch (e) {
+    res.status(500).json({ configured: true, error: String(e), repos: [] });
+  }
+});
+
+// GitHub App webhook — installs, issues, PRs. Verified, then (later) routed to the orchestrator.
+app.post("/api/webhook", (req, res) => {
+  if (WEBHOOK_SECRET) {
+    const sig = req.get("x-hub-signature-256") || "";
+    const digest = "sha256=" + createHmac("sha256", WEBHOOK_SECRET)
+      .update(req.rawBody || Buffer.from("")).digest("hex");
+    const ok = sig.length === digest.length &&
+      timingSafeEqual(Buffer.from(sig), Buffer.from(digest));
+    if (!ok) return res.status(401).json({ error: "bad signature" });
+  }
+  const event = req.get("x-github-event");
+  const b = req.body || {};
+  console.log(`[webhook] ${event} ${b.action || ""} · ${b.repository?.full_name || b.installation?.account?.login || ""}`);
+  // TODO(next): route installation/installation_repositories → refresh roster;
+  //             issues(labeled)/pull_request → drive the orchestrator on that repo.
+  res.json({ ok: true });
+});
 
 // the roster — full records, flagged with whether a local repo is available to run actions
 app.get("/api/tentacles", (_req, res) => {
