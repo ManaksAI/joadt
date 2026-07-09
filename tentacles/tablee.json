@@ -1,6 +1,6 @@
 {
   "tentacle": "tablee",
-  "attached_at": "2026-07-07T12:13:37+00:00",
+  "attached_at": "2026-07-09T19:57:49+00:00",
   "remote": "https://github.com/ManaksAI/tablee.git",
   "grip": "partial",
   "operable": true,
@@ -30,7 +30,7 @@
     "test": "make test-unit",
     "lint": "make lint"
   },
-  "risk": "unknown",
+  "risk": "medium",
   "entrypoints": [
     "index.html",
     "server/index.js",
@@ -51,8 +51,16 @@
     "vite",
     "vitest"
   ],
-  "functionalities": null,
-  "conventions": [],
+  "functionalities": "Tablee is a React + Express single-page app that proxies user requests to the Anthropic API; both the Vite dev server and the Express server must run simultaneously, and the entire backend is inoperable without a valid ANTHROPIC_API_KEY in the environment. Test coverage is limited to budget.js only, leaving all React screens unguarded against regressions, and five overlapping CI workflows create ambiguity about which gate is authoritative for merges. The highest-priority prep work is adding a lint config (the sole missing latch) and clarifying the CI gate topology so JoadT-generated PRs can be validated and merged reliably.",
+  "conventions": [
+    "Source split: src/screens/ holds full-page views (Inputs, OrderCard, Shortlist), src/components/ holds primitives (Dial, Dot, Frame, Tile) \u2014 JoadT must place new files in the correct tier",
+    "Business logic lives in src/data/ as plain .js modules (budget.js, sample.js); JSX is never mixed into data modules",
+    "Tests live in test/ (not colocated), named <module>.test.js; only pure logic is unit-tested \u2014 React components have no test coverage yet",
+    "Tooling scripts are ES module .mjs files under scripts/; they are standalone CLI utilities not imported by application code",
+    "Tailwind is the sole styling mechanism; src/theme.js exposes design tokens consumed in component logic, not in CSS \u2014 do not introduce CSS modules or inline style objects",
+    "Learning log entries follow a strict date-prefixed naming convention (YYYY-MM-DD-slug.md) and are validated by scripts/validate-learning-log.mjs in CI; any docs/learning-log/ change must pass that validator",
+    "Makefile is the canonical task runner surface; npm scripts exist but the Makefile likely composes them \u2014 check Makefile targets before adding new npm scripts"
+  ],
   "open_latches": [
     "lint-config"
   ]

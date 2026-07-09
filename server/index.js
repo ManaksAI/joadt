@@ -1,5 +1,6 @@
 // JoadT control-plane server. Serves the tentacle roster and runs an app's dev/test
 // pipeline steps (build / test / lint) in its local repo, on demand from the UI.
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync, rmSync } from "node:fs";
@@ -107,8 +108,11 @@ app.post("/api/attach", (req, res) => {
   res.setHeader("X-Accel-Buffering", "no");
 
   const onboard = (localPath) => {
-    const child = spawn("python3",
-      [join(ROOT, "scripts", "attach.py"), localPath, "--prep", "--register", REG], { cwd: ROOT });
+    // Run the deep (LLM) analyzer too, when a model key is available.
+    const args = [join(ROOT, "scripts", "attach.py"), localPath];
+    if (process.env.ANTHROPIC_API_KEY) args.push("--deep");
+    args.push("--prep", "--register", REG);
+    const child = spawn("python3", args, { cwd: ROOT });
     child.stdout.on("data", (d) => res.write(d));
     child.stderr.on("data", (d) => res.write(d));
     child.on("error", (e) => { res.write(`\nerror: ${e}\n`); res.end(); });
